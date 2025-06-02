@@ -28,20 +28,17 @@
   <div id="relogio">Carregando...</div>
 
   <script>
-    let agora = null;
+    let agora; // guarda a data atual de Brasília
     const intervaloAtualizacaoAPI = 5 * 60 * 1000; // 5 minutos
 
     async function buscarHoraAPI() {
       try {
-        console.log("Buscando hora da API...");
         const resp = await fetch('https://worldtimeapi.org/api/timezone/America/Sao_Paulo');
-        if (!resp.ok) throw new Error("Resposta HTTP não OK: " + resp.status);
         const dados = await resp.json();
         agora = new Date(dados.datetime);
         console.log('Hora atualizada pela API:', agora.toISOString());
       } catch (e) {
         console.error('Erro ao buscar hora da API', e);
-        document.getElementById('relogio').innerText = "Erro ao buscar horário da API.";
       }
     }
 
@@ -67,20 +64,18 @@
 
       document.getElementById('relogio').innerText = caixa;
 
+      // incrementa 1 segundo localmente para dar fluidez
       agora = new Date(agora.getTime() + 1000);
     }
 
     async function iniciarRelogio() {
       await buscarHoraAPI();
-
-      if (!agora) {
-        // Não conseguiu carregar a hora, não inicia o loop
-        return;
-      }
-
       atualizarRelogio();
 
+      // Atualiza o relógio local a cada 1s
       setInterval(atualizarRelogio, 1000);
+
+      // Atualiza a hora da API a cada 5 minutos para corrigir desvios
       setInterval(buscarHoraAPI, intervaloAtualizacaoAPI);
     }
 
