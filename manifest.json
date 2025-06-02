@@ -14,3 +14,18 @@
     }
   ]
 }
+{
+  "name": "Relógio Brasília",
+  "short_name": "Relógio",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#00FF00",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
