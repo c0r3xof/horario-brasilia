@@ -1,0 +1,16 @@
+{
+  "name": "Horário de Brasília",
+  "short_name": "Relógio BR",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#00ffcc",
+  "description": "Relógio atualizado com horário oficial de Brasília",
+  "icons": [
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/6/65/Clock_font_awesome.svg",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
