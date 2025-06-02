@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#00ffcc",
-  "description": "Relógio atualizado com horário oficial de Brasília",
+  "description": "Horário exato de Brasília em tela cheia",
   "icons": [
     {
       "src": "https://upload.wikimedia.org/wikipedia/commons/6/65/Clock_font_awesome.svg",
