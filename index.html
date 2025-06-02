@@ -1,44 +1,52 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>Relógio Brasília Estável</title>
-  <style>
-    body {
-      background: black;
-      color: #00FF00;
-      font-family: monospace;
-      font-size: 28px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    #relogio {
-      white-space: pre;
-      text-align: center;
-      border: 2px solid #00FF00;
-      padding: 10px;
-      box-shadow: 0 0 15px #00FF00;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Relógio Brasília</title>
+
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#00FF00" />
+
+<style>
+  body {
+    background: black;
+    color: #00FF00;
+    font-family: monospace;
+    font-size: 24px;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+  }
+  #relogio {
+    white-space: pre;
+    text-align: center;
+    border: 2px solid #00FF00;
+    padding: 10px 15px;
+    box-shadow: 0 0 15px #00FF00;
+    cursor: default;
+  }
+</style>
 </head>
 <body>
   <div id="relogio">Carregando...</div>
 
   <script>
-    let agora; // guarda a data atual de Brasília
+    let agora = null;
     const intervaloAtualizacaoAPI = 5 * 60 * 1000; // 5 minutos
 
     async function buscarHoraAPI() {
       try {
         const resp = await fetch('https://worldtimeapi.org/api/timezone/America/Sao_Paulo');
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
         const dados = await resp.json();
         agora = new Date(dados.datetime);
-        console.log('Hora atualizada pela API:', agora.toISOString());
       } catch (e) {
-        console.error('Erro ao buscar hora da API', e);
+        document.getElementById('relogio').innerText = "Erro ao buscar horário.";
+        console.error(e);
       }
     }
 
@@ -56,30 +64,33 @@
       const y = String(agora.getFullYear()).slice(2);
 
       const caixa = [
-        "╔══════════════╗",
-        `║   ${h}:${m}:${s}   ║`,
-        `║   ${d}/${mo}/${y}   ║`,
-        "╚══════════════╝"
+        "╔══════════╗",
+        `║  ${h}:${m}:${s}  ║`,
+        `║  ${d}/${mo}/${y}  ║`,
+        "╚══════════╝"
       ].join('\n');
 
       document.getElementById('relogio').innerText = caixa;
 
-      // incrementa 1 segundo localmente para dar fluidez
       agora = new Date(agora.getTime() + 1000);
     }
 
     async function iniciarRelogio() {
       await buscarHoraAPI();
+      if (!agora) return;
       atualizarRelogio();
-
-      // Atualiza o relógio local a cada 1s
       setInterval(atualizarRelogio, 1000);
-
-      // Atualiza a hora da API a cada 5 minutos para corrigir desvios
       setInterval(buscarHoraAPI, intervaloAtualizacaoAPI);
     }
 
     iniciarRelogio();
+
+    // Registro do Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(() => console.log('Service Worker registrado.'))
+        .catch(err => console.log('Erro no registro do SW:', err));
+    }
   </script>
 </body>
 </html>
