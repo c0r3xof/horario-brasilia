@@ -2,99 +2,89 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Horário de Brasília</title>
-  <link rel="manifest" href="manifest.json" />
+  <title>Relógio Brasília Estável</title>
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background-color: #000;
-      color: #00FFAA;
-      font-family: 'Courier New', monospace;
-      height: 100%;
+    body {
+      background: black;
+      color: #00FF00;
+      font-family: monospace;
+      font-size: 28px;
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
     }
-
     #relogio {
-      font-size: 12vw;
-      text-shadow: 0 0 20px #00FFAA;
-      user-select: none;
-    }
-
-    #instalar {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 10px 16px;
-      background: #00ffcc;
-      color: #000;
-      font-weight: bold;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      display: none;
+      white-space: pre;
+      text-align: center;
+      border: 2px solid #00FF00;
+      padding: 10px;
+      box-shadow: 0 0 15px #00FF00;
     }
   </style>
 </head>
 <body>
-
   <div id="relogio">Carregando...</div>
-  <button id="instalar">Instalar</button>
 
   <script>
-    let horaAtual = null;
-    let promptInstalacao;
+    let agora = null;
+    const intervaloAtualizacaoAPI = 5 * 60 * 1000; // 5 minutos
 
-    async function buscarHorario() {
+    async function buscarHoraAPI() {
       try {
-        const resposta = await fetch('https://worldtimeapi.org/api/timezone/America/Sao_Paulo');
-        const dados = await resposta.json();
-        horaAtual = new Date(dados.datetime);
-        atualizar();
-      } catch (erro) {
-        document.getElementById("relogio").innerText = "Erro ao buscar hora";
+        console.log("Buscando hora da API...");
+        const resp = await fetch('https://worldtimeapi.org/api/timezone/America/Sao_Paulo');
+        if (!resp.ok) throw new Error("Resposta HTTP não OK: " + resp.status);
+        const dados = await resp.json();
+        agora = new Date(dados.datetime);
+        console.log('Hora atualizada pela API:', agora.toISOString());
+      } catch (e) {
+        console.error('Erro ao buscar hora da API', e);
+        document.getElementById('relogio').innerText = "Erro ao buscar horário da API.";
       }
     }
 
-    function atualizar() {
-      if (!horaAtual) return;
-
-      const h = String(horaAtual.getHours()).padStart(2, '0');
-      const m = String(horaAtual.getMinutes()).padStart(2, '0');
-      const s = String(horaAtual.getSeconds()).padStart(2, '0');
-
-      document.getElementById('relogio').innerText = `${h}:${m}:${s}`;
-      horaAtual.setSeconds(horaAtual.getSeconds() + 1);
-    }
-
-    buscarHorario();
-    setInterval(atualizar, 1000);
-
-    // Instalação PWA
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      promptInstalacao = e;
-      document.getElementById('instalar').style.display = 'block';
-    });
-
-    document.getElementById('instalar').addEventListener('click', () => {
-      if (promptInstalacao) {
-        promptInstalacao.prompt();
-        promptInstalacao.userChoice.then(() => {
-          document.getElementById('instalar').style.display = 'none';
-        });
+    function atualizarRelogio() {
+      if (!agora) {
+        document.getElementById('relogio').innerText = 'Carregando...';
+        return;
       }
-    });
 
-    // Service worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
+      const h = String(agora.getHours()).padStart(2, '0');
+      const m = String(agora.getMinutes()).padStart(2, '0');
+      const s = String(agora.getSeconds()).padStart(2, '0');
+      const d = String(agora.getDate()).padStart(2, '0');
+      const mo = String(agora.getMonth() + 1).padStart(2, '0');
+      const y = String(agora.getFullYear()).slice(2);
+
+      const caixa = [
+        "╔══════════════╗",
+        `║   ${h}:${m}:${s}   ║`,
+        `║   ${d}/${mo}/${y}   ║`,
+        "╚══════════════╝"
+      ].join('\n');
+
+      document.getElementById('relogio').innerText = caixa;
+
+      agora = new Date(agora.getTime() + 1000);
     }
+
+    async function iniciarRelogio() {
+      await buscarHoraAPI();
+
+      if (!agora) {
+        // Não conseguiu carregar a hora, não inicia o loop
+        return;
+      }
+
+      atualizarRelogio();
+
+      setInterval(atualizarRelogio, 1000);
+      setInterval(buscarHoraAPI, intervaloAtualizacaoAPI);
+    }
+
+    iniciarRelogio();
   </script>
-
 </body>
 </html>
